@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Seismic Base Shear Calculator</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Seismic Base Shear Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(to bottom, #f4f6f9, #dfe6f2);
+    margin:0; padding:0;
+  }
+
+  .container {
+    max-width:650px;
+    margin:50px auto;
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.15);
+    transition: transform 0.1s;
+  }
+
+  header {
+    text-align:center;
+    margin-bottom:25px;
+  }
+
+  header h1 {
+    margin:0;
+    font-size:26px;
+    color:#e74c3c;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+  }
+
+  header svg {
+    width:50px;
+    height:50px;
+  }
+
+  label {
+    font-weight:bold;
+    margin-top:10px;
+    display:block;
+  }
+
+  select, input {
+    width:100%;
+    padding:12px;
+    margin:8px 0 15px;
+    border-radius:8px;
+    border:1px solid #bdc3c7;
+    font-size:16px;
+    box-sizing:border-box;
+  }
+
+  button {
+    width:100%;
+    padding:14px;
+    background-color:#e74c3c;
+    color:white;
+    font-weight:bold;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    transition: background-color 0.3s;
+    font-size:16px;
+  }
+
+  button:hover {
+    background-color:#c0392b;
+  }
+
+  #resultBox {
+    margin-top:25px;
+    padding:20px;
+    background:#dff9fb;
+    border-left:6px solid #2980b9;
+    border-radius:10px;
+    display:none;
+  }
+
+  .resultTitle {
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:10px;
+    color:#2980b9;
+  }
+
+  table {
+    width:100%;
+    border-collapse: collapse;
+    margin-top:15px;
+  }
+
+  th, td {
+    border:1px solid #ccc;
+    padding:8px;
+    text-align:center;
+  }
+
+  th {
+    background-color:#2980b9;
+    color:white;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color:#ecf0f1;
+  }
+
+  /* Shake animation */
+  @keyframes shake {
+    0% { transform: translate(0px, 0px); }
+    20% { transform: translate(-5px, 0px); }
+    40% { transform: translate(5px, 0px); }
+    60% { transform: translate(-5px, 0px); }
+    80% { transform: translate(5px, 0px); }
+    100% { transform: translate(0px, 0px); }
+  }
+
+  .shake {
+    animation: shake 0.5s;
+  }
+</style>
+</head>
+<body>
+
+<div class="container" id="calculatorContainer">
+  <header>
+    <h1>
+      <!-- Simple Seismograph Icon SVG -->
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <polyline points="2,32 12,20 20,40 28,24 36,36 44,12 52,52 62,32" stroke="#e74c3c" stroke-width="4" fill="none"/>
+        <line x1="0" y1="32" x2="64" y2="32" stroke="#333" stroke-width="1" />
+      </svg>
+      Seismic Base Shear Calculator
+    </h1>
+  </header>
+
+  <label for="location">Select Province / City (PH Zones):</label>
+  <select id="location">
+    <option value="">-- Select --</option>
+    <option value="zone4">Most PH (Zone 4)</option>
+    <option value="zone2">Palawan/Sulu/Tawi-Tawi (Zone 2)</option>
+  </select>
+
+  <label for="soil">Soil Profile Type:</label>
+  <select id="soil">
+    <option value="Sa">Sa – Rock / Rock-like</option>
+    <option value="Sb">Sb – Dense/Stiff Soil</option>
+    <option value="Sc">Sc – Medium Stiff Soil</option>
+    <option value="Sd">Sd – Soft Soil</option>
+    <option value="Se">Se – Deep Soft Soil</option>
+  </select>
+
+  <label for="stories">Number of Stories:</label>
+  <input type="number" id="stories" placeholder="e.g., 5">
+
+  <label for="storyHeight">Typical Story Height (m):</label>
+  <input type="number" id="storyHeight" placeholder="e.g., 3.0">
+
+  <label for="buildingWeight">Estimated Building Weight W (kN):</label>
+  <input type="number" id="buildingWeight" placeholder="e.g., 6000">
+
+  <label for="importance">Importance Factor Iₑ:</label>
+  <select id="importance">
+    <option value="1.0">Normal</option>
+    <option value="1.25">Important</option>
+    <option value="1.50">Essential Facility</option>
+  </select>
+
+  <label for="Rfactor">Response Reduction Factor R:</label>
+  <select id="Rfactor">
+    <option value="5">RC Moment Frame (Typical)</option>
+    <option value="3">Heavy / Special Structures</option>
+    <option value="4">Other Frames</option>
+  </select>
+
+  <button onclick="calculate()">Compute Seismic Loads</button>
+
+  <div id="resultBox">
+    <div class="resultTitle">Results</div>
+    <div id="summary"></div>
+
+    <table id="shearTable">
+      <thead>
+        <tr>
+          <th>Story # (from base)</th>
+          <th>Shear @ Story (kN)</th>
+          <th>Cumulative Shear to Base (kN)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const zoneFactors = { zone2: 0.20, zone4: 0.40 };
+const soilFactor = { Sa: 1.0, Sb: 1.0, Sc: 1.0, Sd: 1.0, Se: 1.0 };
+
+function calculate() {
+  const container = document.getElementById("calculatorContainer");
+  container.classList.add("shake"); // Trigger shake animation
+
+  // Remove shake class after animation
+  setTimeout(() => { container.classList.remove("shake"); }, 500);
+
+  const loc = document.getElementById("location").value;
+  const soil = document.getElementById("soil").value;
+  const nStories = parseInt(document.getElementById("stories").value);
+  const hStory = parseFloat(document.getElementById("storyHeight").value);
+  const W = parseFloat(document.getElementById("buildingWeight").value);
+  const Ie = parseFloat(document.getElementById("importance").value);
+  const R = parseFloat(document.getElementById("Rfactor").value);
+
+  if(!loc || isNaN(W) || W<=0 || !nStories || !hStory) {
+    alert("Please fill all input fields correctly.");
+    return;
+  }
+
+  const Z = zoneFactors[loc];
+  const S = soilFactor[soil];
+  const Cs = (Z * Ie * S) / R;
+  const V = Cs * W;
+
+  const tbody = document.querySelector("#shearTable tbody");
+  tbody.innerHTML = "";
+  let cumulative = 0;
+
+  for (let i = nStories; i >= 1; i--) {
+    const factor = i / (nStories*(nStories+1)/2) * 2; // triangular distribution
+    const Si = V * factor;
+    cumulative += Si;
+    const row = `<tr><td>${i}</td><td>${Si.toFixed(2)}</td><td>${cumulative.toFixed(2)}</td></tr>`;
+    tbody.innerHTML += row;
+  }
+
+  document.getElementById("summary").innerHTML = `
+    <strong>Zone Factor Z:</strong> ${Z.toFixed(2)}<br>
+    <strong>Seismic Coefficient Cₛ:</strong> ${Cs.toFixed(3)}<br>
+    <strong>Total Base Shear V:</strong> ${V.toFixed(2)} kN<br>
+    <em>Shake animation triggered on calculation!</em>
+  `;
+  document.getElementById("resultBox").style.display = "block";
+}
+</script>
+
+</body>
+</html>
+    
+  </body>
+  
+</html>
